@@ -1,0 +1,2 @@
+rootProject.name='BottomNavigationController'
+include ':app'
