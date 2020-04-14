@@ -4,7 +4,6 @@
 
 package com.nemscep.bottomnavigationcontroller.controller
 
-import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.iterator
 import androidx.lifecycle.*
@@ -22,7 +21,7 @@ class BottomNavigationControllerImpl private constructor() : BottomNavigationCon
     private lateinit var mBottomNavigationView: BottomNavigationView
     private lateinit var mNavHostHolder: NavHostHolder
     private lateinit var mActivity: AppCompatActivity // support fragment manager
-    private lateinit var navHostFragments: List<NavHostFragment>
+    private lateinit var mNavHostFragments: List<NavHostFragment>
 
     private val mBackStack: NavigationBackStack = NavigationBackStack()
 
@@ -32,7 +31,7 @@ class BottomNavigationControllerImpl private constructor() : BottomNavigationCon
 
 
     override fun onBackPressed(activityOnBackPressed: () -> Unit) {
-        val navController = navHostFragments[mNavHostHolder.currentItem].findNavController()
+        val navController = mNavHostFragments[mNavHostHolder.currentItem].findNavController()
         if (!navController.navigateUp()) {
             if (mBackStack.size() > 1) {
                 // remove current position from stack
@@ -56,7 +55,7 @@ class BottomNavigationControllerImpl private constructor() : BottomNavigationCon
 
             setOnNavigationItemReselectedListener {
                 val navController =
-                    navHostFragments[mNavHostHolder.currentItem].findNavController()
+                    mNavHostFragments[mNavHostHolder.currentItem].findNavController()
                 if (navController.currentDestination?.id != navController.graph.startDestination) {
                     navController.popBackStack()
                 }
@@ -77,7 +76,7 @@ class BottomNavigationControllerImpl private constructor() : BottomNavigationCon
 
     private fun attachViewPagerListeners() {
         mNavHostHolder.apply {
-            adapter = NavHostHolderAdapter(mActivity.supportFragmentManager, navHostFragments)
+            adapter = NavHostHolderAdapter(mActivity.supportFragmentManager, mNavHostFragments)
             val listener = object : ViewPager.OnPageChangeListener {
                 override fun onPageScrollStateChanged(state: Int) = Unit
 
@@ -88,7 +87,7 @@ class BottomNavigationControllerImpl private constructor() : BottomNavigationCon
                 ) = Unit
 
                 override fun onPageSelected(position: Int) {
-                    val fragment = navHostFragments[position]
+                    val fragment = mNavHostFragments[position]
                     if (mBottomNavigationView.selectedItemId != fragment.id) {
                         mBottomNavigationView.selectedItemId =
                             mBottomNavigationView.menuItemList()[position].value.itemId
@@ -102,14 +101,14 @@ class BottomNavigationControllerImpl private constructor() : BottomNavigationCon
         }
     }
 
-    class Builder {
+    object Builder {
         private lateinit var bottomNavigationView: BottomNavigationView
         private lateinit var navHostHolder: NavHostHolder
         private lateinit var activity: AppCompatActivity
         private lateinit var graphIds: List<Int>
 
         // singleton implementation
-        private val navigationControllerImpl by lazy { BottomNavigationControllerImpl() }
+        private val navigationControllerImpl = singleInstance { BottomNavigationControllerImpl() }
 
         fun bindBottomNavigation(bottomNavigationView: BottomNavigationView) =
             apply { this.bottomNavigationView = bottomNavigationView }
@@ -129,10 +128,7 @@ class BottomNavigationControllerImpl private constructor() : BottomNavigationCon
         }
 
 
-        fun bindActivity(activity: AppCompatActivity) =
-            apply { this.activity = activity }.also {
-
-            }
+        fun bindActivity(activity: AppCompatActivity) = apply { this.activity = activity }
 
         fun build() = navigationControllerImpl.apply {
             this.mBottomNavigationView = bottomNavigationView
@@ -151,12 +147,25 @@ class BottomNavigationControllerImpl private constructor() : BottomNavigationCon
                     }
                 })
             }
-            this.navHostFragments = graphIds.map { NavHostFragment.create(it) }
+            if (!::mNavHostFragments.isInitialized) {
+                this.mNavHostFragments = graphIds.map {
+                    NavHostFragment.create(it)
+                }
+            }
             this.mNavHostHolder = navHostHolder
         }
     }
 
 }
+
+class SingleInstance<T>(lambda: () -> T) {
+    private val elem by lazy { lambda.invoke() }
+    fun get() = elem
+}
+
+//private fun bottomNavigationController() = singleInstance { BottomNavigationControllerImpl() }
+
+fun <T> singleInstance(labmda: () -> T) = SingleInstance(labmda).get()
 
 fun BottomNavigationView.menuItemList() =
     menu.iterator().withIndex().asSequence().toList()
