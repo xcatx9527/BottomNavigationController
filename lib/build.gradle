@@ -1,4 +1,8 @@
-apply plugin: 'com.android.application'
+/*
+ * Copyright (c) 2020. Created by Nemanja Scepanovic
+ */
+
+apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
@@ -11,7 +15,6 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.example.bottomnavigationcontroller"
         minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
@@ -28,7 +31,6 @@ android {
     }
 
 }
-
 
 def lifecycle_version = "2.2.0"
 def nav_version = "2.3.0-alpha04"

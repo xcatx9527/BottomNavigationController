@@ -1,5 +1,10 @@
+/*
+ * Copyright (c) 2020. Created by Nemanja Scepanovic
+ */
+
 package com.nemscep.bottomnavigationcontroller.controller
 
+import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.iterator
 import androidx.lifecycle.*
@@ -12,26 +17,19 @@ import com.nemscep.bottomnavigationcontroller.backstack.NavigationBackStack
 import com.nemscep.bottomnavigationcontroller.ui.NavHostHolder
 import com.nemscep.bottomnavigationcontroller.ui.NavHostHolderAdapter
 
+class BottomNavigationControllerImpl private constructor() : BottomNavigationController {
 
-interface BottomNavigationController {
-    val currentNavController: LiveData<NavController>
-    fun onBackPressed(activityOnBackPressed: () -> Unit)
-}
-
-class NavigationController(graphIds: List<Int>) : BottomNavigationController {
-
-    private lateinit var bottomNavigationView: BottomNavigationView
+    private lateinit var mBottomNavigationView: BottomNavigationView
     private lateinit var mNavHostHolder: NavHostHolder
-    private lateinit var activity: AppCompatActivity
+    private lateinit var mActivity: AppCompatActivity // support fragment manager
+    private lateinit var navHostFragments: List<NavHostFragment>
 
-    private val mBackStack = NavigationBackStack()
+    private val mBackStack: NavigationBackStack = NavigationBackStack()
 
     private val _currentNavController = MutableLiveData<NavController>()
     override val currentNavController =
         _currentNavController.distinctUntilChanged() as LiveData<NavController>
 
-    private val navHostFragments: List<NavHostFragment> =
-        graphIds.map { NavHostFragment.create(it) }.also { navHostFragments = it }
 
     override fun onBackPressed(activityOnBackPressed: () -> Unit) {
         val navController = navHostFragments[mNavHostHolder.currentItem].findNavController()
@@ -47,14 +45,14 @@ class NavigationController(graphIds: List<Int>) : BottomNavigationController {
     }
 
     private fun getItemIndexForMenuItemId(menuItemId: Int) =
-        bottomNavigationView.menu.iterator()
+        mBottomNavigationView.menu.iterator()
             .withIndex()
             .asSequence()
             .toList().find { it.value.itemId == menuItemId }?.index
             ?: throw IllegalStateException("Shouldn't be here")
 
     private fun attachBottomNavigationListeners() {
-        bottomNavigationView.apply {
+        mBottomNavigationView.apply {
 
             setOnNavigationItemReselectedListener {
                 val navController =
@@ -79,7 +77,7 @@ class NavigationController(graphIds: List<Int>) : BottomNavigationController {
 
     private fun attachViewPagerListeners() {
         mNavHostHolder.apply {
-            adapter = NavHostHolderAdapter(activity.supportFragmentManager, navHostFragments)
+            adapter = NavHostHolderAdapter(mActivity.supportFragmentManager, navHostFragments)
             val listener = object : ViewPager.OnPageChangeListener {
                 override fun onPageScrollStateChanged(state: Int) = Unit
 
@@ -91,42 +89,72 @@ class NavigationController(graphIds: List<Int>) : BottomNavigationController {
 
                 override fun onPageSelected(position: Int) {
                     val fragment = navHostFragments[position]
-                    if (bottomNavigationView.selectedItemId != fragment.id) {
-                        bottomNavigationView.selectedItemId =
-                            bottomNavigationView.menuItemList()[position].value.itemId
+                    if (mBottomNavigationView.selectedItemId != fragment.id) {
+                        mBottomNavigationView.selectedItemId =
+                            mBottomNavigationView.menuItemList()[position].value.itemId
                         _currentNavController.postValue(fragment.findNavController())
                     }
                 }
             }
 
             addOnPageChangeListener(listener)
-            post(Runnable { listener.onPageSelected(mBackStack.peek()) })
+            post { listener.onPageSelected(mBackStack.peek()) }
         }
     }
 
+    class Builder {
+        private lateinit var bottomNavigationView: BottomNavigationView
+        private lateinit var navHostHolder: NavHostHolder
+        private lateinit var activity: AppCompatActivity
+        private lateinit var graphIds: List<Int>
 
-    fun bindActivity(activity: AppCompatActivity) = apply { this.activity = activity }.also {
-        activity.lifecycle.addObserver(object : LifecycleObserver {
+        // singleton implementation
+        private val navigationControllerImpl by lazy { BottomNavigationControllerImpl() }
 
-            @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
-            fun onCreate() {
+        fun bindBottomNavigation(bottomNavigationView: BottomNavigationView) =
+            apply { this.bottomNavigationView = bottomNavigationView }
 
-                if (mBackStack.isEmpty()) {
-                    mBackStack.push(bottomNavigationView.menuItemList().first().index)
-                }
+        fun bindContainerView(navHostHolder: NavHostHolder) =
+            apply { this.navHostHolder = navHostHolder }
 
-                attachBottomNavigationListeners()
-                attachViewPagerListeners()
+        fun bindNavGraphs(vararg graphId: Int) = apply {
+            val graphsList = mutableListOf<Int>()
+            for (id in graphId) {
+                graphsList.add(id)
+            }
+            if (graphsList.size != bottomNavigationView.menuItemList().size) {
+                throw java.lang.IllegalStateException("Graph ids list passed isn't size compatible with menu items ")
+            }
+            graphIds = graphsList
+        }
+
+
+        fun bindActivity(activity: AppCompatActivity) =
+            apply { this.activity = activity }.also {
+
             }
 
-        })
+        fun build() = navigationControllerImpl.apply {
+            this.mBottomNavigationView = bottomNavigationView
+            this.mActivity = activity.apply {
+                lifecycle.addObserver(object : LifecycleObserver {
+
+                    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
+                    fun onCreate() {
+
+                        if (mBackStack.isEmpty()) {
+                            mBackStack.push(0)
+                        }
+
+                        attachBottomNavigationListeners()
+                        attachViewPagerListeners()
+                    }
+                })
+            }
+            this.navHostFragments = graphIds.map { NavHostFragment.create(it) }
+            this.mNavHostHolder = navHostHolder
+        }
     }
-
-    fun bindBottomNavigation(bottomNavigationView: BottomNavigationView) =
-        apply { this.bottomNavigationView = bottomNavigationView }
-
-    fun bindContainerView(navHostHolder: NavHostHolder) =
-        apply { this.mNavHostHolder = navHostHolder }
 
 }
 

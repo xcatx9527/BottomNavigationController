@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020. Created by Nemanja Scepanovic
+ */
+
 package com.nemscep.bottomnavigationcontroller.ui
 
 import androidx.fragment.app.Fragment
