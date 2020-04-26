@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2020. Created by Nemanja Scepanovic
+  -->
+
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/three_graph"
+    app:startDestination="@id/threeFragment">
+
+    <fragment
+        android:id="@+id/threeFragment"
+        android:name="com.example.sampleapplication.ThreeFragment"
+        android:label="fragment_three"
+        tools:layout="@layout/fragment_three" />
+</navigation>

@@ -1,4 +1,8 @@
-package com.nemscep.bottomnavigationcontroller
+/*
+ * Copyright (c) 2020. Created by Nemanja Scepanovic 
+ */
+
+package com.example.sampleapplication
 
 import org.junit.Test
 

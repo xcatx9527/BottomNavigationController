@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2020. Created by Nemanja Scepanovic
+  -->
+
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/one_graph"
+    app:startDestination="@id/oneFragment">
+
+    <fragment
+        android:id="@+id/oneFragment"
+        android:name="com.example.sampleapplication.OneFragment"
+        android:label="fragment_one"
+        tools:layout="@layout/fragment_one" />
+    <fragment
+        android:id="@+id/oneAFragment"
+        android:name="com.example.sampleapplication.OneAFragment"
+        android:label="fragment_one_a"
+        tools:layout="@layout/fragment_one_a" />
+</navigation>
