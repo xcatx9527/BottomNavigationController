@@ -40,27 +40,34 @@ interface BackStack<T> {
      * Returns whether backstack is empty or not
      */
     fun isEmpty(): Boolean
+
+    /**
+     * Returns iterable to help
+     */
+    fun iterable(): Iterator<T>
 }
 
-class NavigationBackStack : BackStack<Int> {
+class NavigationBackStack : BackStack<String> {
 
-    private val mBackStack: MutableList<Int> = mutableListOf()
+    private val mBackStack: MutableList<String> = mutableListOf()
 
-    override fun push(value: Int) {
+    override fun push(value: String) {
         mBackStack.remove(value)
         mBackStack.add(value)
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun pop(): Int = mBackStack.removeLast()
+    override fun pop(): String = mBackStack.removeLast()
 
-    override fun peek(): Int = mBackStack.last()
+    override fun peek(): String = mBackStack.last()
 
-    override fun search(value: Int): Int? = mBackStack.firstOrNull { it == value }
+    override fun search(value: String): String? = mBackStack.firstOrNull { it == value }
 
     override fun clear() = mBackStack.clear()
 
     override fun size() = mBackStack.size
 
     override fun isEmpty(): Boolean = mBackStack.isEmpty()
+
+    override fun iterable(): Iterator<String> = mBackStack.iterator()
 }
