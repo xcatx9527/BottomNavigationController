@@ -10,7 +10,8 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/BottomNavigationController" />
+            <option value="$PROJECT_DIR$/lib" />
+            <option value="$PROJECT_DIR$/sampleapplication" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
