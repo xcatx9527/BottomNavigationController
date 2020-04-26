@@ -13,25 +13,23 @@ import androidx.core.util.set
 import androidx.core.view.iterator
 import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.distinctUntilChanged
+import androidx.lifecycle.*
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.nemscep.bottomnavigationcontroller.NavigationControllerState
 import com.nemscep.bottomnavigationcontroller.backstack.*
 
 class BottomNavigationControllerImpl private constructor(
     private val mBottomNavigationView: BottomNavigationView,
     mActivity: AppCompatActivity,
     mContainerView: View,
-    mGraphIdsList: List<Int>,
-    savedInstanceState: Bundle?
+    mGraphIdsList: List<Int>
 ) : BottomNavigationController {
 
     private val mFragmentManager = mActivity.supportFragmentManager
-    private val mBackStack: NavigationBackStack = NavigationBackStack()
+    private val mBackStack: NavigationBackStack = NavigationControllerState.navigationBackStack
 
     private val fragmentDestinationIdMap = SparseArray<String>()
 
@@ -39,7 +37,7 @@ class BottomNavigationControllerImpl private constructor(
     override val currentNavController =
         _currentNavController.distinctUntilChanged() as LiveData<NavController>
 
-    override fun onBackPressed(activityOnBackPressed: () -> Unit) {
+    override fun onBackPressed(): Boolean {
         val currentFragment =
             mFragmentManager.findFragmentByTag(mBackStack.peek()) as NavHostFragment
         if (!currentFragment.navController.navigateUp()) {
@@ -49,11 +47,19 @@ class BottomNavigationControllerImpl private constructor(
                 val newTop = mFragmentManager.findFragmentByTag(mBackStack.peek())!!
                 // set the next item in stack as current
                 mBottomNavigationView.selectedItemId = newTop.findNavController().graph.id
-            } else activityOnBackPressed.invoke()
+            } else return false
         }
+        return true
     }
 
     init {
+
+        mActivity.lifecycle.addObserver(object : LifecycleObserver {
+            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+            fun onDestroy() {
+                NavigationControllerState.navigationBackStack = mBackStack
+            }
+        })
 
         mGraphIdsList.forEachIndexed { index, graphId ->
             val tag = getFragmentTag(index)
@@ -116,13 +122,12 @@ class BottomNavigationControllerImpl private constructor(
 
     }
 
-    object Builder {
+    class Builder {
         private lateinit var bottomNavigationView: BottomNavigationView
         private lateinit var activity: AppCompatActivity
         private lateinit var fragmentManager: FragmentManager
         private lateinit var graphIds: List<Int>
         private lateinit var fragmentContainerView: FragmentContainerView
-        private var savedInstanceState: Bundle? = null
 
         fun bindBottomNavigation(bottomNavigationView: BottomNavigationView) =
             apply { this.bottomNavigationView = bottomNavigationView }
@@ -138,10 +143,6 @@ class BottomNavigationControllerImpl private constructor(
             graphIds = graphsList
         }
 
-        fun bindSavedInstanceState(bundle: Bundle) = apply {
-            this.savedInstanceState = bundle
-        }
-
         fun bindFragmentManager(fragmentManager: FragmentManager) =
             apply { this.fragmentManager = fragmentManager }
 
@@ -154,12 +155,12 @@ class BottomNavigationControllerImpl private constructor(
             bottomNavigationView,
             activity,
             fragmentContainerView,
-            graphIds,
-            savedInstanceState
+            graphIds
         )
     }
 
 }
+
 
 class SingleInstance<T>(lambda: () -> T) {
     private val elem by lazy { lambda.invoke() }

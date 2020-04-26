@@ -8,6 +8,13 @@ import androidx.lifecycle.LiveData
 import androidx.navigation.NavController
 
 interface BottomNavigationController {
+    /**
+     * Live data for current nav controller
+     */
     val currentNavController: LiveData<NavController>
-    fun onBackPressed(activityOnBackPressed: () -> Unit)
+
+    /**
+     * Returns [Boolean] value whether the controller handled the back event or not
+     */
+    fun onBackPressed(): Boolean
 }
