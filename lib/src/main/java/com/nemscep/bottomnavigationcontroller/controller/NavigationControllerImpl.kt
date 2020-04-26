@@ -20,6 +20,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.nemscep.bottomnavigationcontroller.NavigationControllerState
 import com.nemscep.bottomnavigationcontroller.backstack.*
+import com.nemscep.bottomnavigationcontroller.util.menuItemList
 
 class BottomNavigationControllerImpl private constructor(
     private val mBottomNavigationView: BottomNavigationView,
@@ -125,7 +126,6 @@ class BottomNavigationControllerImpl private constructor(
     class Builder {
         private lateinit var bottomNavigationView: BottomNavigationView
         private lateinit var activity: AppCompatActivity
-        private lateinit var fragmentManager: FragmentManager
         private lateinit var graphIds: List<Int>
         private lateinit var fragmentContainerView: FragmentContainerView
 
@@ -143,9 +143,6 @@ class BottomNavigationControllerImpl private constructor(
             graphIds = graphsList
         }
 
-        fun bindFragmentManager(fragmentManager: FragmentManager) =
-            apply { this.fragmentManager = fragmentManager }
-
         fun bindFragmentContainerView(fragmentContainerView: FragmentContainerView) =
             apply { this.fragmentContainerView = fragmentContainerView }
 
@@ -161,20 +158,3 @@ class BottomNavigationControllerImpl private constructor(
 
 }
 
-
-class SingleInstance<T>(lambda: () -> T) {
-    private val elem by lazy { lambda.invoke() }
-    fun get() = elem
-}
-
-fun <T> singleInstance(labmda: () -> T) = SingleInstance(labmda).get()
-
-fun BottomNavigationView.menuItemList() =
-    menu.iterator().withIndex().asSequence().toList()
-
-fun BottomNavigationView.getItemIndexForMenuItemId(menuItemId: Int) =
-    menu.iterator()
-        .withIndex()
-        .asSequence()
-        .toList().find { it.value.itemId == menuItemId }?.index
-        ?: throw IllegalStateException("Shouldn't be here")
