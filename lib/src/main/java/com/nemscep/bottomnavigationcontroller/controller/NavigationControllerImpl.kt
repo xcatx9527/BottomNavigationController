@@ -4,6 +4,7 @@
 
 package com.nemscep.bottomnavigationcontroller.controller
 
+import android.os.Bundle
 import android.util.SparseArray
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -12,9 +13,10 @@ import androidx.core.util.set
 import androidx.core.view.iterator
 import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.distinctUntilChanged
 import androidx.navigation.NavController
-import androidx.navigation.NavHost
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -24,11 +26,14 @@ class BottomNavigationControllerImpl private constructor(
     private val mBottomNavigationView: BottomNavigationView,
     mActivity: AppCompatActivity,
     mContainerView: View,
-    mGraphIdsList: List<Int>
+    mGraphIdsList: List<Int>,
+    savedInstanceState: Bundle?
 ) : BottomNavigationController {
 
     private val mFragmentManager = mActivity.supportFragmentManager
     private val mBackStack: NavigationBackStack = NavigationBackStack()
+
+    private val fragmentDestinationIdMap = SparseArray<String>()
 
     private val _currentNavController = MutableLiveData<NavController>()
     override val currentNavController =
@@ -49,52 +54,46 @@ class BottomNavigationControllerImpl private constructor(
     }
 
     init {
-        val graphIdToTag = SparseArray<String>()
-        val selectedNavController = MutableLiveData<NavController>()
-        var firstFragmentGraphId = 0
 
         mGraphIdsList.forEachIndexed { index, graphId ->
             val tag = getFragmentTag(index)
             val navHostFragment =
                 obtainNavHostFragment(mFragmentManager, tag, graphId, mContainerView.id)
 
-            val gId = navHostFragment.navController.graph.id
-            if (index == 0) {
-                firstFragmentGraphId = gId
-            }
-            graphIdToTag[gId] = tag
+            val fragmentDestinationId = navHostFragment.navController.graph.id
+            fragmentDestinationIdMap[fragmentDestinationId] = tag
 
-            if (mBottomNavigationView.selectedItemId == gId) {
+            if (mBottomNavigationView.selectedItemId == fragmentDestinationId) {
+                // push BottomNavigationView's current item to stack
+                mBackStack.push(navHostFragment.tag!!)
                 // Update livedata with the selected graph
-                selectedNavController.value = navHostFragment.navController
+                _currentNavController.value = navHostFragment.navController
                 attachNavHostFragment(mFragmentManager, navHostFragment, mBackStack)
             } else {
                 detachNavHostFragment(mFragmentManager, navHostFragment)
             }
         }
 
-        val firstFragmentTag = graphIdToTag[firstFragmentGraphId]
-        mBackStack.push(firstFragmentTag)
-
         mBottomNavigationView.setOnNavigationItemSelectedListener { item ->
             if (mFragmentManager.isStateSaved) return@setOnNavigationItemSelectedListener false
 
-            val newlySelectedItemTag = graphIdToTag[item.itemId]
+            val newlySelectedItemTag = fragmentDestinationIdMap[item.itemId]
             val selectedFragment =
                 mFragmentManager.findFragmentByTag(newlySelectedItemTag)
                         as NavHostFragment
             // push currently selected tag to backstack
             mBackStack.push(newlySelectedItemTag)
 
+            // attach currently selected fragment and detach others
             mFragmentManager.beginTransaction()
                 .attach(selectedFragment)
                 .setPrimaryNavigationFragment(selectedFragment)
                 .apply {
                     // Detach all other Fragments
-                    graphIdToTag.forEach { _, fragmentTagIter ->
-                        if (fragmentTagIter != newlySelectedItemTag) {
+                    fragmentDestinationIdMap.forEach { _, tag ->
+                        if (tag != newlySelectedItemTag) {
                             detach(
-                                mFragmentManager.findFragmentByTag(fragmentTagIter)!!
+                                mFragmentManager.findFragmentByTag(tag)!!
                             )
                         }
                     }
@@ -102,12 +101,12 @@ class BottomNavigationControllerImpl private constructor(
                 .setReorderingAllowed(true)
                 .commit()
 
-            selectedNavController.value = selectedFragment.navController
-            true
+            _currentNavController.value = selectedFragment.navController
+            return@setOnNavigationItemSelectedListener true
         }
 
         mBottomNavigationView.setOnNavigationItemReselectedListener { item ->
-            val newlySelectedItemTag = graphIdToTag[item.itemId]
+            val newlySelectedItemTag = fragmentDestinationIdMap[item.itemId]
             val selectedFragment = mFragmentManager.findFragmentByTag(newlySelectedItemTag)
                     as NavHostFragment
             val navController = selectedFragment.navController
@@ -123,6 +122,7 @@ class BottomNavigationControllerImpl private constructor(
         private lateinit var fragmentManager: FragmentManager
         private lateinit var graphIds: List<Int>
         private lateinit var fragmentContainerView: FragmentContainerView
+        private var savedInstanceState: Bundle? = null
 
         fun bindBottomNavigation(bottomNavigationView: BottomNavigationView) =
             apply { this.bottomNavigationView = bottomNavigationView }
@@ -138,6 +138,10 @@ class BottomNavigationControllerImpl private constructor(
             graphIds = graphsList
         }
 
+        fun bindSavedInstanceState(bundle: Bundle) = apply {
+            this.savedInstanceState = bundle
+        }
+
         fun bindFragmentManager(fragmentManager: FragmentManager) =
             apply { this.fragmentManager = fragmentManager }
 
@@ -150,7 +154,8 @@ class BottomNavigationControllerImpl private constructor(
             bottomNavigationView,
             activity,
             fragmentContainerView,
-            graphIds
+            graphIds,
+            savedInstanceState
         )
     }
 
