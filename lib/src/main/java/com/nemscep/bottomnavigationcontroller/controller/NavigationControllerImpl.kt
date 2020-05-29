@@ -18,6 +18,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.nemscep.bottomnavigationcontroller.backstack.*
 import com.nemscep.bottomnavigationcontroller.util.menuItemList
+import java.lang.IllegalStateException
 
 class BottomNavigationControllerImpl private constructor(
     private val mBottomNavigationView: BottomNavigationView,
@@ -25,10 +26,8 @@ class BottomNavigationControllerImpl private constructor(
     private val mContainerView: View,
     private val mGraphIdsList: List<Int>
 ) : BottomNavigationController {
-
     private val mFragmentManager by lazy { mActivity.supportFragmentManager }
     private val mBackStack: DefaultNavigationBackstack = DefaultNavigationBackstack
-
     private val fragmentDestinationIdMap = SparseArray<String>()
 
     private val _currentNavController = MutableLiveData<NavController>()
@@ -121,7 +120,7 @@ class BottomNavigationControllerImpl private constructor(
         private lateinit var graphIds: List<Int>
         private lateinit var fragmentContainerView: FragmentContainerView
 
-        fun bindBottomNavigation(bottomNavigationView: BottomNavigationView) =
+        fun bindBottomNavigationView(bottomNavigationView: BottomNavigationView) =
             apply { this.bottomNavigationView = bottomNavigationView }
 
         fun bindNavGraphs(vararg graphId: Int) = apply {
@@ -130,7 +129,7 @@ class BottomNavigationControllerImpl private constructor(
                 graphsList.add(id)
             }
             if (graphsList.size != bottomNavigationView.menuItemList().size) {
-                throw java.lang.IllegalStateException("Graph ids list passed isn't size compatible with menu items ")
+                throw IllegalStateException("Graph ids list passed isn't size compatible with menu items ")
             }
             graphIds = graphsList
         }
@@ -140,17 +139,33 @@ class BottomNavigationControllerImpl private constructor(
 
         fun bindActivity(activity: AppCompatActivity) = apply { this.activity = activity }
 
-        fun build() = BottomNavigationControllerImpl(
-            bottomNavigationView,
-            activity,
-            fragmentContainerView,
-            graphIds
-        ).apply {
-            createNavHostFragments()
-            configureActivity()
-            configureBottomNavigationView()
+        private fun checkRequiredParamsBound() {
+            when {
+                !::bottomNavigationView.isInitialized -> throw IllegalStateException("BottomNavigationView must be bound!")
+                !::activity.isInitialized -> throw IllegalStateException("Activity must be bound!")
+                !::graphIds.isInitialized -> throw IllegalStateException("GraphIds list must be bound!")
+                !::fragmentContainerView.isInitialized -> throw IllegalStateException("fragmentContainerView must be bound!")
+            }
+        }
+
+        fun build(): BottomNavigationController {
+            // Before creating and object, all required attributes must be bound
+            checkRequiredParamsBound()
+
+            return BottomNavigationControllerImpl(
+                bottomNavigationView,
+                activity,
+                fragmentContainerView,
+                graphIds
+            ).apply {
+                createNavHostFragments()
+                configureActivity()
+                configureBottomNavigationView()
+            }
         }
     }
 
 }
+
+
 

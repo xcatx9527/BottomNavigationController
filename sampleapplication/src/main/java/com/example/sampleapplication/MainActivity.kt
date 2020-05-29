@@ -8,7 +8,6 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import com.nemscep.bottomnavigationcontroller.controller.BottomNavigationController
 import com.nemscep.bottomnavigationcontroller.controller.BottomNavigationControllerImpl
 import kotlinx.android.synthetic.main.activity_main.*
@@ -24,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             navigationController = BottomNavigationControllerImpl.Builder()
                 .bindActivity(this)
-                .bindBottomNavigation(bnb_example)
+                .bindBottomNavigationView(bnb_example)
                 .bindFragmentContainerView(fcv_main)
                 .bindNavGraphs(
                     R.navigation.one_graph,
@@ -44,7 +43,7 @@ class MainActivity : AppCompatActivity() {
 
         navigationController = BottomNavigationControllerImpl.Builder()
             .bindActivity(this)
-            .bindBottomNavigation(bnb_example)
+            .bindBottomNavigationView(bnb_example)
             .bindFragmentContainerView(fcv_main)
             .bindNavGraphs(
                 R.navigation.one_graph,
