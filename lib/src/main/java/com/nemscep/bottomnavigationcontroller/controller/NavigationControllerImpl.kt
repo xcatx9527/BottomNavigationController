@@ -22,8 +22,8 @@ import com.nemscep.bottomnavigationcontroller.util.menuItemList
 class BottomNavigationControllerImpl private constructor(
     private val mBottomNavigationView: BottomNavigationView,
     private val mActivity: AppCompatActivity,
-    mContainerView: View,
-    mGraphIdsList: List<Int>
+    private val mContainerView: View,
+    private val mGraphIdsList: List<Int>
 ) : BottomNavigationController {
 
     private val mFragmentManager by lazy { mActivity.supportFragmentManager }
@@ -51,10 +51,7 @@ class BottomNavigationControllerImpl private constructor(
         }
     }
 
-    init {
-
-        mActivity.onBackPressedDispatcher.addCallback { onBackPressed() }
-
+    fun createNavHostFragments() {
         mGraphIdsList.forEachIndexed { index, graphId ->
             val tag = getFragmentTag(index)
             val navHostFragment =
@@ -73,7 +70,9 @@ class BottomNavigationControllerImpl private constructor(
                 detachNavHostFragment(mFragmentManager, navHostFragment)
             }
         }
+    }
 
+    fun configureBottomNavigationView() {
         mBottomNavigationView.setOnNavigationItemSelectedListener { item ->
             if (mFragmentManager.isStateSaved) return@setOnNavigationItemSelectedListener false
 
@@ -102,7 +101,6 @@ class BottomNavigationControllerImpl private constructor(
             _currentNavController.value = selectedFragment.navController
             return@setOnNavigationItemSelectedListener true
         }
-
         mBottomNavigationView.setOnNavigationItemReselectedListener { item ->
             val newlySelectedItemTag = fragmentDestinationIdMap[item.itemId]
             val selectedFragment = mFragmentManager.findFragmentByTag(newlySelectedItemTag)
@@ -111,7 +109,10 @@ class BottomNavigationControllerImpl private constructor(
             // Pop the back stack to the start destination of the current navController graph
             navController.popBackStack(navController.graph.startDestination, false)
         }
+    }
 
+    fun configureActivity() {
+        mActivity.onBackPressedDispatcher.addCallback { onBackPressed() }
     }
 
     class Builder {
@@ -144,7 +145,11 @@ class BottomNavigationControllerImpl private constructor(
             activity,
             fragmentContainerView,
             graphIds
-        )
+        ).apply {
+            createNavHostFragments()
+            configureActivity()
+            configureBottomNavigationView()
+        }
     }
 
 }
