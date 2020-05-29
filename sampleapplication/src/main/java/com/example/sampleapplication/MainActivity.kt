@@ -4,8 +4,11 @@
 
 package com.example.sampleapplication
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
 import com.nemscep.bottomnavigationcontroller.controller.BottomNavigationController
 import com.nemscep.bottomnavigationcontroller.controller.BottomNavigationControllerImpl
 import kotlinx.android.synthetic.main.activity_main.*
@@ -29,6 +32,10 @@ class MainActivity : AppCompatActivity() {
                     R.navigation.three_graph,
                     R.navigation.four_graph
                 ).build()
+
+            navigationController.currentNavController.observe(this, Observer {
+                setupActionBarWithNavController(it)
+            })
         }
     }
 
@@ -45,9 +52,14 @@ class MainActivity : AppCompatActivity() {
                 R.navigation.three_graph,
                 R.navigation.four_graph
             ).build()
+
+        navigationController.currentNavController.observe(this, Observer {
+            setupActionBarWithNavController(it)
+        })
     }
 
     override fun onBackPressed() {
         if (!navigationController.onBackPressed()) super.onBackPressed()
     }
+
 }
