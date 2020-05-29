@@ -51,7 +51,7 @@ class BottomNavigationControllerImpl private constructor(
         }
     }
 
-    fun createNavHostFragments() {
+    private fun createNavHostFragments() {
         mGraphIdsList.forEachIndexed { index, graphId ->
             val tag = getFragmentTag(index)
             val navHostFragment =
@@ -72,7 +72,7 @@ class BottomNavigationControllerImpl private constructor(
         }
     }
 
-    fun configureBottomNavigationView() {
+    private fun configureBottomNavigationView() {
         mBottomNavigationView.setOnNavigationItemSelectedListener { item ->
             if (mFragmentManager.isStateSaved) return@setOnNavigationItemSelectedListener false
 
@@ -111,7 +111,7 @@ class BottomNavigationControllerImpl private constructor(
         }
     }
 
-    fun configureActivity() {
+    private fun configureActivity() {
         mActivity.onBackPressedDispatcher.addCallback { onBackPressed() }
     }
 
