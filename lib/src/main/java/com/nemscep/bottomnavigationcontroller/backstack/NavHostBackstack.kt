@@ -47,7 +47,7 @@ interface BackStack<T> {
     fun iterable(): Iterator<T>
 }
 
-class NavigationBackStack : BackStack<String> {
+object NavigationBackStack : BackStack<String> {
 
     private val mBackStack: MutableList<String> = mutableListOf()
 
