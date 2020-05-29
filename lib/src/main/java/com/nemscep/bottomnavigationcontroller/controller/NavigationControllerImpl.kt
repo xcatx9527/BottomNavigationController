@@ -4,21 +4,17 @@
 
 package com.nemscep.bottomnavigationcontroller.controller
 
-import android.os.Bundle
 import android.util.SparseArray
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.util.forEach
 import androidx.core.util.set
-import androidx.core.view.iterator
 import androidx.fragment.app.FragmentContainerView
-import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.*
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.nemscep.bottomnavigationcontroller.NavigationControllerState
 import com.nemscep.bottomnavigationcontroller.backstack.*
 import com.nemscep.bottomnavigationcontroller.util.menuItemList
 
@@ -29,8 +25,8 @@ class BottomNavigationControllerImpl private constructor(
     mGraphIdsList: List<Int>
 ) : BottomNavigationController {
 
-    private val mFragmentManager = mActivity.supportFragmentManager
-    private val mBackStack: NavigationBackStack = NavigationControllerState.navigationBackStack
+    private val mFragmentManager by lazy { mActivity.supportFragmentManager }
+    private val mBackStack: NavigationBackStack = NavigationBackStack
 
     private val fragmentDestinationIdMap = SparseArray<String>()
 
@@ -54,13 +50,6 @@ class BottomNavigationControllerImpl private constructor(
     }
 
     init {
-
-        mActivity.lifecycle.addObserver(object : LifecycleObserver {
-            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-            fun onDestroy() {
-                NavigationControllerState.navigationBackStack = mBackStack
-            }
-        })
 
         mGraphIdsList.forEachIndexed { index, graphId ->
             val tag = getFragmentTag(index)
@@ -99,9 +88,7 @@ class BottomNavigationControllerImpl private constructor(
                     // Detach all other Fragments
                     fragmentDestinationIdMap.forEach { _, tag ->
                         if (tag != newlySelectedItemTag) {
-                            detach(
-                                mFragmentManager.findFragmentByTag(tag)!!
-                            )
+                            detach(mFragmentManager.findFragmentByTag(tag)!!)
                         }
                     }
                 }
