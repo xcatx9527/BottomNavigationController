@@ -58,8 +58,4 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    override fun onBackPressed() {
-        if (!navigationController.onBackPressed()) super.onBackPressed()
-    }
-
 }

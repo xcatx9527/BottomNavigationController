@@ -6,6 +6,7 @@ package com.nemscep.bottomnavigationcontroller.controller
 
 import android.util.SparseArray
 import android.view.View
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.util.forEach
 import androidx.core.util.set
@@ -20,7 +21,7 @@ import com.nemscep.bottomnavigationcontroller.util.menuItemList
 
 class BottomNavigationControllerImpl private constructor(
     private val mBottomNavigationView: BottomNavigationView,
-    mActivity: AppCompatActivity,
+    private val mActivity: AppCompatActivity,
     mContainerView: View,
     mGraphIdsList: List<Int>
 ) : BottomNavigationController {
@@ -34,7 +35,7 @@ class BottomNavigationControllerImpl private constructor(
     override val currentNavController =
         _currentNavController.distinctUntilChanged() as LiveData<NavController>
 
-    override fun onBackPressed(): Boolean {
+    private fun onBackPressed() {
         val currentFragment =
             mFragmentManager.findFragmentByTag(mBackStack.peek()) as NavHostFragment
         if (!currentFragment.navController.navigateUp()) {
@@ -44,12 +45,15 @@ class BottomNavigationControllerImpl private constructor(
                 val newTop = mFragmentManager.findFragmentByTag(mBackStack.peek())!!
                 // set the next item in stack as current
                 mBottomNavigationView.selectedItemId = newTop.findNavController().graph.id
-            } else return false
+            } else {
+                mActivity.finish()
+            }
         }
-        return true
     }
 
     init {
+
+        mActivity.onBackPressedDispatcher.addCallback { onBackPressed() }
 
         mGraphIdsList.forEachIndexed { index, graphId ->
             val tag = getFragmentTag(index)
