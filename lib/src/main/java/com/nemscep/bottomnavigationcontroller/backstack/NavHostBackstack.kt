@@ -47,7 +47,10 @@ interface BackStack<T> {
     fun iterable(): Iterator<T>
 }
 
-object NavigationBackStack : BackStack<String> {
+/**
+ * Default implementation of Navigation backstack behavior
+ */
+object DefaultNavigationBackstack : BackStack<String> {
 
     private val mBackStack: MutableList<String> = mutableListOf()
 

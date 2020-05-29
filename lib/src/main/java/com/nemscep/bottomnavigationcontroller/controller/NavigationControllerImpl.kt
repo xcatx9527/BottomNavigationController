@@ -26,7 +26,7 @@ class BottomNavigationControllerImpl private constructor(
 ) : BottomNavigationController {
 
     private val mFragmentManager by lazy { mActivity.supportFragmentManager }
-    private val mBackStack: NavigationBackStack = NavigationBackStack
+    private val mBackStack: DefaultNavigationBackstack = DefaultNavigationBackstack
 
     private val fragmentDestinationIdMap = SparseArray<String>()
 

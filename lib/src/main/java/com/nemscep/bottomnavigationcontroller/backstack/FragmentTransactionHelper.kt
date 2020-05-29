@@ -23,7 +23,7 @@ fun detachNavHostFragment(
 fun attachNavHostFragment(
     fragmentManager: FragmentManager,
     navHostFragment: NavHostFragment,
-    mBackStack: NavigationBackStack
+    mBackStack: DefaultNavigationBackstack
 ) = fragmentManager.beginTransaction()
     .attach(navHostFragment)
     .setPrimaryNavigationFragment(navHostFragment)
@@ -48,7 +48,7 @@ fun obtainNavHostFragment(
     navGraphId: Int,
     containerId: Int
 ): NavHostFragment {
-    // If the Nav Host fragment exists, return it
+    // If the NavHostFragment exists, return it
     val existingFragment = fragmentManager.findFragmentByTag(fragmentTag) as NavHostFragment?
     existingFragment?.let { return it }
 
