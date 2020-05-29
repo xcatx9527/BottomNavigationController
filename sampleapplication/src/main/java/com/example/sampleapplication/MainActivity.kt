@@ -5,6 +5,7 @@
 package com.example.sampleapplication
 
 import android.os.Bundle
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -19,6 +20,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        actionBar?.setDisplayHomeAsUpEnabled(true)
 
         if (savedInstanceState == null) {
             navigationController = BottomNavigationControllerImpl.Builder()
@@ -56,5 +58,16 @@ class MainActivity : AppCompatActivity() {
             setupActionBarWithNavController(it)
         })
     }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
 
 }
