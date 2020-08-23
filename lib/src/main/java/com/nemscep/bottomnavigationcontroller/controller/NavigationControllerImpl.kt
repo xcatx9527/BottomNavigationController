@@ -27,7 +27,7 @@ class BottomNavigationControllerImpl private constructor(
     private val mGraphIdsList: List<Int>
 ) : BottomNavigationController {
     private val mFragmentManager by lazy { mActivity.supportFragmentManager }
-    private val mBackStack: DefaultNavigationBackstack = DefaultNavigationBackstack
+    private val mBackStack: DefaultNavigationBackStack = DefaultNavigationBackStack
     private val fragmentDestinationIdMap = SparseArray<String>()
 
     private val _currentNavController = MutableLiveData<NavController>()

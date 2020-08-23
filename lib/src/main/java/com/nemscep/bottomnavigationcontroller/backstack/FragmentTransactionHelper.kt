@@ -23,17 +23,17 @@ fun detachNavHostFragment(
 fun attachNavHostFragment(
     fragmentManager: FragmentManager,
     navHostFragment: NavHostFragment,
-    mBackStack: DefaultNavigationBackstack
+    mBackStack: DefaultNavigationBackStack
 ) = fragmentManager.beginTransaction()
     .attach(navHostFragment)
     .setPrimaryNavigationFragment(navHostFragment)
     .also {
         mBackStack.iterable().forEach {
             if (navHostFragment.tag != it) {
-                detachNavHostFragment(
-                    fragmentManager,
-                    fragmentManager.findFragmentByTag(it)!! as NavHostFragment
-                )
+                val fragment = fragmentManager.findFragmentByTag(it) as NavHostFragment?
+                if (fragment != null) {
+                    detachNavHostFragment(fragmentManager, fragment)
+                }
             }
         }
     }
@@ -54,7 +54,8 @@ fun obtainNavHostFragment(
 
     // Otherwise, create it and return it.
     val navHostFragment = NavHostFragment.create(navGraphId)
-    fragmentManager.beginTransaction().add(containerId, navHostFragment, fragmentTag).commitNow()
+    fragmentManager.beginTransaction().add(containerId, navHostFragment, fragmentTag)
+        .commitNow()
     return navHostFragment
 }
 
@@ -68,5 +69,5 @@ fun FragmentManager.isOnBackStack(backStackName: String): Boolean {
     return false
 }
 
-fun getFragmentTag(index: Int) = "bottomNavigation#$index"
+fun getFragmentTag(index: Int) = "bottom_navigation#$index"
 

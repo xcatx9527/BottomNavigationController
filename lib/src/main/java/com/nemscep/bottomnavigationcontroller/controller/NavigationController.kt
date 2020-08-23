@@ -7,6 +7,9 @@ package com.nemscep.bottomnavigationcontroller.controller
 import androidx.lifecycle.LiveData
 import androidx.navigation.NavController
 
+/**
+ * Represents interface of interaction with bottom navigation.
+ */
 interface BottomNavigationController {
     /**
      * Live data for current nav controller
